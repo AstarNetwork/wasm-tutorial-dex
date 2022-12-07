@@ -41,7 +41,7 @@ where
         }
 
         let salt = Self::env().hash_encoded::<Blake2x256, _>(&token_pair);
-        let pair_contract = self._instantiate_pair(salt.as_ref());
+        let pair_contract = self._instantiate_pair(salt.as_ref())?;
 
         PairRef::initialize(&pair_contract, token_pair.0, token_pair.1)?;
 
@@ -63,7 +63,7 @@ where
         Ok(pair_contract)
     }
 
-    default fn _instantiate_pair(&mut self, _salt_bytes: &[u8]) -> AccountId {
+    default fn _instantiate_pair(&mut self, _salt_bytes: &[u8]) -> Result<AccountId, FactoryError> {
         // need to be overridden in contract
         unimplemented!()
     }

@@ -16,7 +16,7 @@ pub trait Factory {
         token_b: AccountId,
     ) -> Result<AccountId, FactoryError>;
 
-    fn _instantiate_pair(&mut self, salt_bytes: &[u8]) -> AccountId;
+    fn _instantiate_pair(&mut self, salt_bytes: &[u8]) -> Result<AccountId, FactoryError>;
 
     #[ink(message)]
     fn set_fee_to(&mut self, fee_to: AccountId) -> Result<(), FactoryError>;
@@ -52,6 +52,7 @@ pub enum FactoryError {
     CallerIsNotFeeSetter,
     ZeroAddress,
     IdenticalAddresses,
+    PairInstantiationFailed,
 }
 
 impl From<PairError> for FactoryError {
