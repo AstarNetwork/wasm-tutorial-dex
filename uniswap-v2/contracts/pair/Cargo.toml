@@ -15,15 +15,13 @@ ink_prelude = { version = "3.4.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
 
-openbrush = { tag = "v2.3.0", git = "https://github.com/Supercolony-net/openbrush-contracts", default-features = false, features = ["psp22", "ownable", "reentrancy_guard"] }
-uniswap_v2 = { path = "../../logics", default-features = false }
+openbrush = { tag = "v2.3.0", git = "https://github.com/Supercolony-net/openbrush-contracts", default-features = false, features = ["psp22"] }
 
 [lib]
 name = "pair_contract"
 path = "lib.rs"
 crate-type = [
-    "cdylib",
-    "rlib"
+    "cdylib"
 ]
 
 [features]
@@ -39,12 +37,5 @@ std = [
     "scale-info",
     "scale-info/std",
     "openbrush/std",
-    "uniswap_v2/std"
 ]
 ink-as-dependency = []
-
-[profile.dev]
-overflow-checks = false
-
-[profile.release]
-overflow-checks = false
