@@ -15,8 +15,7 @@ ink_prelude = { version = "3.4.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
 
-openbrush = { tag = "v2.3.0", git = "https://github.com/Supercolony-net/openbrush-contracts", default-features = false, features = ["psp22", "ownable", "reentrancy_guard"] }
-primitive-types = { version = "0.11.1", default-features = false, features = ["num-traits"] }
+openbrush = { tag = "v2.3.0", git = "https://github.com/Supercolony-net/openbrush-contracts", default-features = false, features = ["psp22"] }
 
 [lib]
 name = "uniswap_v2"
@@ -38,5 +37,4 @@ std = [
     "scale-info",
     "scale-info/std",
     "openbrush/std",
-    "primitive-types/std"
 ]
