@@ -1,9 +1,7 @@
-use openbrush::{
-    traits::{
-        AccountId,
-        Balance,
-        Timestamp,
-    },
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Timestamp,
 };
 
 #[openbrush::wrapper]
@@ -27,5 +25,5 @@ pub trait Pair {
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum PairError {
-    Error
+    Error,
 }

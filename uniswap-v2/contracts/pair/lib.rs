@@ -10,16 +10,15 @@ pub mod pair {
     use ink_prelude::vec::Vec;
     use ink_storage::traits::SpreadAllocate;
     use openbrush::{
-        contracts::{
-            psp22::{
-                Internal,
-                *,
-            },
+        contracts::psp22::{
+            Internal,
+            *,
         },
         traits::Storage,
     };
     use uniswap_v2::{
         impls::pair::*,
+        traits::pair::*,
     };
 
     #[ink(event)]
@@ -48,6 +47,8 @@ pub mod pair {
         #[storage_field]
         pair: data::Data,
     }
+
+    impl Pair for PairContract {}
 
     impl PSP22 for PairContract {
         #[ink(message)]
@@ -156,8 +157,7 @@ pub mod pair {
     impl PairContract {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-            })
+            ink_lang::codegen::initialize_contract(|instance: &mut Self| {})
         }
     }
 }
