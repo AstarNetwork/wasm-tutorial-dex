@@ -1,9 +1,5 @@
 use openbrush::{
-    contracts::{
-        traits::{
-            psp22::PSP22Error,
-        },
-    },
+    contracts::traits::psp22::PSP22Error,
     traits::{
         AccountId,
         Balance,
@@ -25,6 +21,9 @@ pub trait Pair {
     #[ink(message)]
     fn mint(&mut self, to: AccountId) -> Result<Balance, PairError>;
 
+    #[ink(message)]
+    fn burn(&mut self, to: AccountId) -> Result<(Balance, Balance), PairError>;
+
     fn _mint_fee(&mut self, reserve_0: Balance, reserve_1: Balance) -> Result<bool, PairError>;
 
     fn _update(
@@ -41,16 +40,33 @@ pub trait Pair {
     #[ink(message)]
     fn get_token_1(&self) -> AccountId;
 
+    fn _safe_transfer(
+        &mut self,
+        token: AccountId,
+        to: AccountId,
+        value: Balance,
+    ) -> Result<(), PairError>;
+
     fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance);
 
     fn _emit_sync_event(&self, reserve_0: Balance, reserve_1: Balance);
+
+    fn _emit_burn_event(
+        &self,
+        _sender: AccountId,
+        _amount_0: Balance,
+        _amount_1: Balance,
+        _to: AccountId,
+    );
 }
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum PairError {
     PSP22Error(PSP22Error),
+    TransferError,
     InsufficientLiquidityMinted,
+    InsufficientLiquidityBurned,
     Overflow,
     SubUnderFlow1,
     SubUnderFlow2,
@@ -61,10 +77,14 @@ pub enum PairError {
     MulOverFlow3,
     MulOverFlow4,
     MulOverFlow5,
+    MulOverFlow6,
+    MulOverFlow7,
     MulOverFlow14,
     MulOverFlow15,
     DivByZero1,
     DivByZero2,
+    DivByZero3,
+    DivByZero4,
     DivByZero5,
     AddOverflow1,
 }
