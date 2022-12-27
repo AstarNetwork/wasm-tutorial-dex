@@ -176,9 +176,9 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         self.data::<data::Data>().token_1
     }
 
-    fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance) {}
+    default fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance) {}
 
-    fn _emit_sync_event(&self, _reserve_0: Balance, _reserve_1: Balance) {}
+    default fn _emit_sync_event(&self, _reserve_0: Balance, _reserve_1: Balance) {}
 }
 
 fn min(x: u128, y: u128) -> u128 {
