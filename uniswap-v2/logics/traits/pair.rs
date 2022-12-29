@@ -24,6 +24,14 @@ pub trait Pair {
     #[ink(message)]
     fn burn(&mut self, to: AccountId) -> Result<(Balance, Balance), PairError>;
 
+    #[ink(message)]
+    fn swap(
+        &mut self,
+        amount_0_out: Balance,
+        amount_1_out: Balance,
+        to: AccountId,
+    ) -> Result<(), PairError>;
+
     fn _mint_fee(&mut self, reserve_0: Balance, reserve_1: Balance) -> Result<bool, PairError>;
 
     fn _update(
@@ -58,6 +66,16 @@ pub trait Pair {
         _amount_1: Balance,
         _to: AccountId,
     );
+
+    fn _emit_swap_event(
+        &self,
+        _sender: AccountId,
+        _amount_0_in: Balance,
+        _amount_1_in: Balance,
+        _amount_0_out: Balance,
+        _amount_1_out: Balance,
+        _to: AccountId,
+    );
 }
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -65,12 +83,25 @@ pub trait Pair {
 pub enum PairError {
     PSP22Error(PSP22Error),
     TransferError,
+    K,
     InsufficientLiquidityMinted,
     InsufficientLiquidityBurned,
+    InsufficientOutputAmount,
+    InsufficientLiquidity,
     Overflow,
+    InvalidTo,
+    InsufficientInputAmount,
     SubUnderFlow1,
     SubUnderFlow2,
     SubUnderFlow3,
+    SubUnderFlow4,
+    SubUnderFlow5,
+    SubUnderFlow6,
+    SubUnderFlow7,
+    SubUnderFlow8,
+    SubUnderFlow9,
+    SubUnderFlow10,
+    SubUnderFlow11,
     SubUnderFlow14,
     MulOverFlow1,
     MulOverFlow2,
@@ -79,8 +110,15 @@ pub enum PairError {
     MulOverFlow5,
     MulOverFlow6,
     MulOverFlow7,
+    MulOverFlow8,
+    MulOverFlow9,
+    MulOverFlow10,
+    MulOverFlow11,
     MulOverFlow14,
     MulOverFlow15,
+    MulOverFlow16,
+    MulOverFlow17,
+    MulOverFlow18,
     DivByZero1,
     DivByZero2,
     DivByZero3,
