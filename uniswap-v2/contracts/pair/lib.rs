@@ -58,6 +58,8 @@ pub mod pair {
 
     impl Pair for PairContract {}
 
+    impl Ownable for PairContract {}
+
     impl PSP22 for PairContract {
         #[ink(message)]
         fn transfer_from(
