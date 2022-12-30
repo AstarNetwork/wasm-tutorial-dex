@@ -40,6 +40,18 @@ pub mod pair {
     }
 
     #[ink(event)]
+    pub struct Swap {
+        #[ink(topic)]
+        pub sender: AccountId,
+        pub amount_0_in: Balance,
+        pub amount_1_in: Balance,
+        pub amount_0_out: Balance,
+        pub amount_1_out: Balance,
+        #[ink(topic)]
+        pub to: AccountId,
+    }
+
+    #[ink(event)]
     pub struct Transfer {
         #[ink(topic)]
         from: Option<AccountId>,
@@ -86,6 +98,25 @@ pub mod pair {
                 sender,
                 amount_0,
                 amount_1,
+                to,
+            })
+        }
+
+        fn _emit_swap_event(
+            &self,
+            sender: AccountId,
+            amount_0_in: Balance,
+            amount_1_in: Balance,
+            amount_0_out: Balance,
+            amount_1_out: Balance,
+            to: AccountId,
+        ) {
+            self.env().emit_event(Swap {
+                sender,
+                amount_0_in,
+                amount_1_in,
+                amount_0_out,
+                amount_1_out,
                 to,
             })
         }
