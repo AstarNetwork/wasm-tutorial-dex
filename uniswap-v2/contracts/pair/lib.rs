@@ -29,6 +29,15 @@ pub mod pair {
         pub amount_1: Balance,
     }
 
+    #[ink(event)]
+    pub struct Burn {
+        #[ink(topic)]
+        pub sender: AccountId,
+        pub amount_0: Balance,
+        pub amount_1: Balance,
+        #[ink(topic)]
+        pub to: AccountId,
+    }
 
     #[ink(event)]
     pub struct Transfer {
@@ -63,6 +72,21 @@ pub mod pair {
                 sender,
                 amount_0,
                 amount_1,
+            })
+        }
+
+        fn _emit_burn_event(
+            &self,
+            sender: AccountId,
+            amount_0: Balance,
+            amount_1: Balance,
+            to: AccountId,
+        ) {
+            self.env().emit_event(Burn {
+                sender,
+                amount_0,
+                amount_1,
+                to,
             })
         }
     }
