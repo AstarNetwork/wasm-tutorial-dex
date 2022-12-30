@@ -1,6 +1,4 @@
-use crate::traits::{
-    factory::FactoryRef
-};
+use crate::traits::factory::FactoryRef;
 pub use crate::{
     impls::pair::*,
     traits::pair::*,
@@ -8,9 +6,12 @@ pub use crate::{
 use ink_prelude::vec::Vec;
 use openbrush::{
     contracts::{
+        ownable::*,
         psp22::*,
+        reentrancy_guard::*,
         traits::psp22::PSP22Ref,
     },
+    modifiers,
     traits::{
         AccountId,
         Balance,
@@ -22,7 +23,13 @@ use openbrush::{
 
 pub const MINIMUM_LIQUIDITY: u128 = 1000;
 
-impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
+impl<
+        T: Storage<data::Data>
+            + Storage<psp22::Data>
+            + Storage<reentrancy_guard::Data>
+            + Storage<ownable::Data>,
+    > Pair for T
+{
     fn get_reserves(&self) -> (Balance, Balance, Timestamp) {
         (
             self.data::<data::Data>().reserve_0,
@@ -31,12 +38,14 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         )
     }
 
+    #[modifiers(only_owner)]
     fn initialize(&mut self, token_0: AccountId, token_1: AccountId) -> Result<(), PairError> {
         self.data::<data::Data>().token_0 = token_0;
         self.data::<data::Data>().token_1 = token_1;
         Ok(())
     }
 
+    #[modifiers(non_reentrant)]
     fn mint(&mut self, to: AccountId) -> Result<Balance, PairError> {
         let reserves = self.get_reserves();
         let contract = Self::env().account_id();
@@ -96,6 +105,7 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         Ok(liquidity)
     }
 
+    #[modifiers(non_reentrant)]
     fn burn(&mut self, to: AccountId) -> Result<(Balance, Balance), PairError> {
         let reserves = self.get_reserves();
         let contract = Self::env().account_id();
@@ -145,6 +155,7 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         Ok((amount_0, amount_1))
     }
 
+    #[modifiers(non_reentrant)]
     fn swap(
         &mut self,
         amount_0_out: Balance,
@@ -177,9 +188,9 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
 
         let amount_0_in = if balance_0
             > reserves
-            .0
-            .checked_sub(amount_0_out)
-            .ok_or(PairError::SubUnderFlow4)?
+                .0
+                .checked_sub(amount_0_out)
+                .ok_or(PairError::SubUnderFlow4)?
         {
             balance_0
                 .checked_sub(
@@ -194,9 +205,9 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         };
         let amount_1_in = if balance_1
             > reserves
-            .1
-            .checked_sub(amount_1_out)
-            .ok_or(PairError::SubUnderFlow7)?
+                .1
+                .checked_sub(amount_1_out)
+                .ok_or(PairError::SubUnderFlow7)?
         {
             balance_1
                 .checked_sub(
@@ -228,11 +239,11 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
             .checked_mul(balance_1_adjusted)
             .ok_or(PairError::MulOverFlow16)?
             < reserves
-            .0
-            .checked_mul(reserves.1)
-            .ok_or(PairError::MulOverFlow17)?
-            .checked_mul(1000u128.pow(2))
-            .ok_or(PairError::MulOverFlow18)?
+                .0
+                .checked_mul(reserves.1)
+                .ok_or(PairError::MulOverFlow17)?
+                .checked_mul(1000u128.pow(2))
+                .ok_or(PairError::MulOverFlow18)?
         {
             return Err(PairError::K)
         }
@@ -320,6 +331,14 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         Ok(())
     }
 
+    fn get_token_0(&self) -> AccountId {
+        self.data::<data::Data>().token_0
+    }
+
+    fn get_token_1(&self) -> AccountId {
+        self.data::<data::Data>().token_1
+    }
+
     fn _safe_transfer(
         &mut self,
         token: AccountId,
@@ -330,15 +349,8 @@ impl<T: Storage<data::Data> + Storage<psp22::Data>> Pair for T {
         Ok(())
     }
 
-    fn get_token_0(&self) -> AccountId {
-        self.data::<data::Data>().token_0
+    default fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance) {
     }
-
-    fn get_token_1(&self) -> AccountId {
-        self.data::<data::Data>().token_1
-    }
-
-    default fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance) {}
 
     default fn _emit_sync_event(&self, _reserve_0: Balance, _reserve_1: Balance) {}
 

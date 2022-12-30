@@ -10,9 +10,13 @@ pub mod pair {
     use ink_prelude::vec::Vec;
     use ink_storage::traits::SpreadAllocate;
     use openbrush::{
-        contracts::psp22::{
-            Internal,
-            *,
+        contracts::{
+            ownable::*,
+            psp22::{
+                Internal,
+                *,
+            },
+            reentrancy_guard,
         },
         traits::Storage,
     };
@@ -44,6 +48,10 @@ pub mod pair {
     pub struct PairContract {
         #[storage_field]
         psp22: psp22::Data,
+        #[storage_field]
+        ownable: ownable::Data,
+        #[storage_field]
+        guard: reentrancy_guard::Data,
         #[storage_field]
         pair: data::Data,
     }
@@ -157,7 +165,11 @@ pub mod pair {
     impl PairContract {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {})
+            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
+                let caller = instance.env().caller();
+                instance._init_with_owner(caller);
+                instance.pair.factory = caller;
+            })
         }
     }
 }

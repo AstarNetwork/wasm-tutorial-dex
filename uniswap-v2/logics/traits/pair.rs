@@ -1,5 +1,11 @@
 use openbrush::{
-    contracts::traits::psp22::PSP22Error,
+    contracts::{
+        reentrancy_guard::*,
+        traits::{
+            ownable::*,
+            psp22::PSP22Error,
+        },
+    },
     traits::{
         AccountId,
         Balance,
@@ -82,6 +88,8 @@ pub trait Pair {
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum PairError {
     PSP22Error(PSP22Error),
+    OwnableError(OwnableError),
+    ReentrancyGuardError(ReentrancyGuardError),
     TransferError,
     K,
     InsufficientLiquidityMinted,
@@ -130,5 +138,17 @@ pub enum PairError {
 impl From<PSP22Error> for PairError {
     fn from(error: PSP22Error) -> Self {
         PairError::PSP22Error(error)
+    }
+}
+
+impl From<OwnableError> for PairError {
+    fn from(error: OwnableError) -> Self {
+        PairError::OwnableError(error)
+    }
+}
+
+impl From<ReentrancyGuardError> for PairError {
+    fn from(error: ReentrancyGuardError) -> Self {
+        PairError::ReentrancyGuardError(error)
     }
 }
