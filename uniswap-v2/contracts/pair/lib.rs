@@ -3,12 +3,13 @@
 
 #[openbrush::contract]
 pub mod pair {
-    use ink_lang::codegen::{
-        EmitEvent,
-        Env,
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        prelude::vec::Vec,
     };
-    use ink_prelude::vec::Vec;
-    use ink_storage::traits::SpreadAllocate;
     use openbrush::{
         contracts::{
             psp22::{
@@ -38,7 +39,7 @@ pub mod pair {
     }
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct PairContract {
         #[storage_field]
         psp22: psp22::Data,
@@ -151,7 +152,7 @@ pub mod pair {
     impl PairContract {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {})
+            Self { psp22: Default::default() }
         }
     }
 }
