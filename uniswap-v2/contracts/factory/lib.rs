@@ -3,7 +3,6 @@
 
 #[openbrush::contract]
 pub mod factory {
-    use ink_storage::traits::SpreadAllocate;
     use openbrush::traits::{
         Storage,
         ZERO_ADDRESS,
@@ -14,7 +13,7 @@ pub mod factory {
     };
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct FactoryContract {
         #[storage_field]
         factory: data::Data,
@@ -25,11 +24,11 @@ pub mod factory {
     impl FactoryContract {
         #[ink(constructor)]
         pub fn new(fee_to_setter: AccountId, pair_code_hash: Hash) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                instance.factory.pair_contract_code_hash = pair_code_hash;
-                instance.factory.fee_to_setter = fee_to_setter;
-                instance.factory.fee_to = ZERO_ADDRESS.into();
-            })
+            let mut instance = Self::default();
+            instance.factory.pair_contract_code_hash = pair_code_hash;
+            instance.factory.fee_to_setter = fee_to_setter;
+            instance.factory.fee_to = ZERO_ADDRESS.into();
+            instance
         }
     }
 }

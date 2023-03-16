@@ -2,14 +2,12 @@ pub use crate::{
     impls::factory::*,
     traits::factory::*,
 };
-use openbrush::{
-    traits::{
-        AccountId,
-        Storage
-    },
+use openbrush::traits::{
+    AccountId,
+    Storage,
 };
 
-impl<T: Storage<data::Data>,> Factory for T {
+impl<T: Storage<data::Data>> Factory for T {
     fn all_pair_length(&self) -> u64 {
         self.data::<data::Data>().all_pairs.len() as u64
     }
