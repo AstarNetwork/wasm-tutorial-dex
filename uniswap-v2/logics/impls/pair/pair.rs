@@ -3,8 +3,7 @@ pub use crate::{
     impls::pair::*,
     traits::pair::*,
 };
-use ink_env::CallFlags;
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::{
         ownable::*,
@@ -21,18 +20,17 @@ use openbrush::{
         ZERO_ADDRESS,
     },
 };
-use crate::traits::pair::PairError::PSP22Error;
 
 pub const MINIMUM_LIQUIDITY: u128 = 1000;
 
 impl<
         T: Storage<data::Data>
-            + Storage<ownable::Data>
             + Storage<psp22::Data>
-            + Storage<reentrancy_guard::Data>,
+            + Storage<reentrancy_guard::Data>
+            + Storage<ownable::Data>,
     > Pair for T
 {
-    default fn get_reserves(&self) -> (Balance, Balance, Timestamp) {
+    fn get_reserves(&self) -> (Balance, Balance, Timestamp) {
         (
             self.data::<data::Data>().reserve_0,
             self.data::<data::Data>().reserve_1,
@@ -41,18 +39,14 @@ impl<
     }
 
     #[modifiers(only_owner)]
-    default fn initialize(
-        &mut self,
-        token_0: AccountId,
-        token_1: AccountId,
-    ) -> Result<(), PairError> {
+    fn initialize(&mut self, token_0: AccountId, token_1: AccountId) -> Result<(), PairError> {
         self.data::<data::Data>().token_0 = token_0;
         self.data::<data::Data>().token_1 = token_1;
         Ok(())
     }
 
     #[modifiers(non_reentrant)]
-    default fn mint(&mut self, to: AccountId) -> Result<Balance, PairError> {
+    fn mint(&mut self, to: AccountId) -> Result<Balance, PairError> {
         let reserves = self.get_reserves();
         let contract = Self::env().account_id();
         let balance_0 = PSP22Ref::balance_of(&self.data::<data::Data>().token_0, contract);
@@ -112,7 +106,7 @@ impl<
     }
 
     #[modifiers(non_reentrant)]
-    default fn burn(&mut self, to: AccountId) -> Result<(Balance, Balance), PairError> {
+    fn burn(&mut self, to: AccountId) -> Result<(Balance, Balance), PairError> {
         let reserves = self.get_reserves();
         let contract = Self::env().account_id();
         let token_0 = self.data::<data::Data>().token_0;
@@ -162,7 +156,7 @@ impl<
     }
 
     #[modifiers(non_reentrant)]
-    default fn swap(
+    fn swap(
         &mut self,
         amount_0_out: Balance,
         amount_1_out: Balance,
@@ -267,74 +261,7 @@ impl<
         Ok(())
     }
 
-    #[modifiers(non_reentrant)]
-    default fn skim(&mut self, to: AccountId) -> Result<(), PairError> {
-        let contract = Self::env().account_id();
-        let reserve_0 = self.data::<data::Data>().reserve_0;
-        let reserve_1 = self.data::<data::Data>().reserve_1;
-        let token_0 = self.data::<data::Data>().token_0;
-        let token_1 = self.data::<data::Data>().token_1;
-        let balance_0 = PSP22Ref::balance_of(&token_0, contract);
-        let balance_1 = PSP22Ref::balance_of(&token_1, contract);
-        self._safe_transfer(
-            token_0,
-            to,
-            balance_0
-                .checked_sub(reserve_0)
-                .ok_or(PairError::SubUnderFlow12)?,
-        )?;
-        self._safe_transfer(
-            token_1,
-            to,
-            balance_1
-                .checked_sub(reserve_1)
-                .ok_or(PairError::SubUnderFlow13)?,
-        )?;
-        Ok(())
-    }
-
-    #[modifiers(non_reentrant)]
-    default fn sync(&mut self) -> Result<(), PairError> {
-        let contract = Self::env().account_id();
-        let reserve_0 = self.data::<data::Data>().reserve_0;
-        let reserve_1 = self.data::<data::Data>().reserve_1;
-        let token_0 = self.data::<data::Data>().token_0;
-        let token_1 = self.data::<data::Data>().token_1;
-        let balance_0 = PSP22Ref::balance_of(&token_0, contract);
-        let balance_1 = PSP22Ref::balance_of(&token_1, contract);
-        self._update(balance_0, balance_1, reserve_0, reserve_1)
-    }
-
-    default fn get_token_0(&self) -> AccountId {
-        self.data::<data::Data>().token_0
-    }
-
-    default fn get_token_1(&self) -> AccountId {
-        self.data::<data::Data>().token_1
-    }
-
-    default fn _safe_transfer(
-        &mut self,
-        token: AccountId,
-        to: AccountId,
-        value: Balance,
-    ) -> Result<(), PairError> {
-        match PSP22Ref::transfer_builder(&token, to, value, Vec::<u8>::new())
-            .call_flags(CallFlags::default().set_allow_reentry(true))
-            .fire() {
-            Ok(res) => {match res {
-                Ok(_) => Ok(()),
-                Err(err) => Err(PSP22Error(err))
-            }},
-            Err(_) => Err(PairError::TransferError)
-        }
-    }
-
-    default fn _mint_fee(
-        &mut self,
-        reserve_0: Balance,
-        reserve_1: Balance,
-    ) -> Result<bool, PairError> {
+    fn _mint_fee(&mut self, reserve_0: Balance, reserve_1: Balance) -> Result<bool, PairError> {
         let fee_to = FactoryRef::fee_to(&self.data::<data::Data>().factory);
         let fee_on = fee_to != ZERO_ADDRESS.into();
         let k_last = self.data::<data::Data>().k_last;
@@ -374,7 +301,7 @@ impl<
         Ok(fee_on)
     }
 
-    default fn _update(
+    fn _update(
         &mut self,
         balance_0: Balance,
         balance_1: Balance,
@@ -404,8 +331,29 @@ impl<
         Ok(())
     }
 
+    fn get_token_0(&self) -> AccountId {
+        self.data::<data::Data>().token_0
+    }
+
+    fn get_token_1(&self) -> AccountId {
+        self.data::<data::Data>().token_1
+    }
+
+    fn _safe_transfer(
+        &mut self,
+        token: AccountId,
+        to: AccountId,
+        value: Balance,
+    ) -> Result<(), PairError> {
+        PSP22Ref::transfer(&token, to, value, Vec::new())?;
+        Ok(())
+    }
+
     default fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance) {
     }
+
+    default fn _emit_sync_event(&self, _reserve_0: Balance, _reserve_1: Balance) {}
+
     default fn _emit_burn_event(
         &self,
         _sender: AccountId,
@@ -414,6 +362,7 @@ impl<
         _to: AccountId,
     ) {
     }
+
     default fn _emit_swap_event(
         &self,
         _sender: AccountId,
@@ -424,7 +373,6 @@ impl<
         _to: AccountId,
     ) {
     }
-    default fn _emit_sync_event(&self, _reserve_0: Balance, _reserve_1: Balance) {}
 }
 
 fn min(x: u128, y: u128) -> u128 {

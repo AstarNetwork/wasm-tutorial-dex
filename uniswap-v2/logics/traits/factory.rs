@@ -32,10 +32,7 @@ pub trait Factory {
 
     #[ink(message)]
     fn get_pair(&self, token_a: AccountId, token_b: AccountId) -> Option<AccountId>;
-}
 
-#[openbrush::trait_definition]
-pub trait Internal {
     fn _emit_create_pair_event(
         &self,
         _token_0: AccountId,

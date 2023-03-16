@@ -3,7 +3,6 @@ use openbrush::{
         reentrancy_guard::*,
         traits::{
             ownable::*,
-            pausable::*,
             psp22::PSP22Error,
         },
     },
@@ -39,11 +38,15 @@ pub trait Pair {
         to: AccountId,
     ) -> Result<(), PairError>;
 
-    #[ink(message)]
-    fn skim(&mut self, to: AccountId) -> Result<(), PairError>;
+    fn _mint_fee(&mut self, reserve_0: Balance, reserve_1: Balance) -> Result<bool, PairError>;
 
-    #[ink(message)]
-    fn sync(&mut self) -> Result<(), PairError>;
+    fn _update(
+        &mut self,
+        balance_0: Balance,
+        balance_1: Balance,
+        reserve_0: Balance,
+        reserve_1: Balance,
+    ) -> Result<(), PairError>;
 
     #[ink(message)]
     fn get_token_0(&self) -> AccountId;
@@ -58,17 +61,10 @@ pub trait Pair {
         value: Balance,
     ) -> Result<(), PairError>;
 
-    fn _mint_fee(&mut self, reserve_0: Balance, reserve_1: Balance) -> Result<bool, PairError>;
-
-    fn _update(
-        &mut self,
-        balance_0: Balance,
-        balance_1: Balance,
-        reserve_0: Balance,
-        reserve_1: Balance,
-    ) -> Result<(), PairError>;
-
     fn _emit_mint_event(&self, _sender: AccountId, _amount_0: Balance, _amount_1: Balance);
+
+    fn _emit_sync_event(&self, reserve_0: Balance, reserve_1: Balance);
+
     fn _emit_burn_event(
         &self,
         _sender: AccountId,
@@ -76,6 +72,7 @@ pub trait Pair {
         _amount_1: Balance,
         _to: AccountId,
     );
+
     fn _emit_swap_event(
         &self,
         _sender: AccountId,
@@ -85,7 +82,6 @@ pub trait Pair {
         _amount_1_out: Balance,
         _to: AccountId,
     );
-    fn _emit_sync_event(&self, reserve_0: Balance, reserve_1: Balance);
 }
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -93,7 +89,6 @@ pub trait Pair {
 pub enum PairError {
     PSP22Error(PSP22Error),
     OwnableError(OwnableError),
-    PausableError(PausableError),
     ReentrancyGuardError(ReentrancyGuardError),
     TransferError,
     K,
@@ -101,11 +96,9 @@ pub enum PairError {
     InsufficientLiquidityBurned,
     InsufficientOutputAmount,
     InsufficientLiquidity,
-    InsufficientInputAmount,
-    SafeTransferFailed,
-    InvalidTo,
     Overflow,
-    Locked,
+    InvalidTo,
+    InsufficientInputAmount,
     SubUnderFlow1,
     SubUnderFlow2,
     SubUnderFlow3,
@@ -117,8 +110,6 @@ pub enum PairError {
     SubUnderFlow9,
     SubUnderFlow10,
     SubUnderFlow11,
-    SubUnderFlow12,
-    SubUnderFlow13,
     SubUnderFlow14,
     MulOverFlow1,
     MulOverFlow2,
@@ -131,8 +122,6 @@ pub enum PairError {
     MulOverFlow9,
     MulOverFlow10,
     MulOverFlow11,
-    MulOverFlow12,
-    MulOverFlow13,
     MulOverFlow14,
     MulOverFlow15,
     MulOverFlow16,
@@ -146,21 +135,15 @@ pub enum PairError {
     AddOverflow1,
 }
 
-impl From<OwnableError> for PairError {
-    fn from(error: OwnableError) -> Self {
-        PairError::OwnableError(error)
-    }
-}
-
-impl From<PausableError> for PairError {
-    fn from(access: PausableError) -> Self {
-        PairError::PausableError(access)
-    }
-}
-
 impl From<PSP22Error> for PairError {
     fn from(error: PSP22Error) -> Self {
         PairError::PSP22Error(error)
+    }
+}
+
+impl From<OwnableError> for PairError {
+    fn from(error: OwnableError) -> Self {
+        PairError::OwnableError(error)
     }
 }
 

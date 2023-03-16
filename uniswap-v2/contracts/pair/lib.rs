@@ -3,19 +3,17 @@
 
 #[openbrush::contract]
 pub mod pair {
-    use ink_lang::codegen::{
-        EmitEvent,
-        Env,
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        prelude::vec::Vec,
     };
-    use ink_prelude::vec::Vec;
-    use ink_storage::traits::SpreadAllocate;
     use openbrush::{
         contracts::{
             ownable::*,
-            psp22::{
-                Internal,
-                *,
-            },
+            psp22::*,
             reentrancy_guard,
         },
         traits::Storage,
@@ -56,12 +54,6 @@ pub mod pair {
     }
 
     #[ink(event)]
-    pub struct Sync {
-        reserve_0: Balance,
-        reserve_1: Balance,
-    }
-
-    #[ink(event)]
     pub struct Transfer {
         #[ink(topic)]
         from: Option<AccountId>,
@@ -80,7 +72,7 @@ pub mod pair {
     }
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct PairContract {
         #[storage_field]
         psp22: psp22::Data,
@@ -91,6 +83,52 @@ pub mod pair {
         #[storage_field]
         pair: data::Data,
     }
+
+    impl Pair for PairContract {
+        fn _emit_mint_event(&self, sender: AccountId, amount_0: Balance, amount_1: Balance) {
+            self.env().emit_event(Mint {
+                sender,
+                amount_0,
+                amount_1,
+            })
+        }
+
+        fn _emit_burn_event(
+            &self,
+            sender: AccountId,
+            amount_0: Balance,
+            amount_1: Balance,
+            to: AccountId,
+        ) {
+            self.env().emit_event(Burn {
+                sender,
+                amount_0,
+                amount_1,
+                to,
+            })
+        }
+
+        fn _emit_swap_event(
+            &self,
+            sender: AccountId,
+            amount_0_in: Balance,
+            amount_1_in: Balance,
+            amount_0_out: Balance,
+            amount_1_out: Balance,
+            to: AccountId,
+        ) {
+            self.env().emit_event(Swap {
+                sender,
+                amount_0_in,
+                amount_1_in,
+                amount_0_out,
+                amount_1_out,
+                to,
+            })
+        }
+    }
+
+    impl Ownable for PairContract {}
 
     impl PSP22 for PairContract {
         #[ink(message)]
@@ -117,7 +155,7 @@ pub mod pair {
         }
     }
 
-    impl Internal for PairContract {
+    impl psp22::Internal for PairContract {
         // in uniswapv2 no check for zero account
         fn _mint_to(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
             let mut new_balance = self._balance_of(&account);
@@ -196,67 +234,14 @@ pub mod pair {
         }
     }
 
-    impl Ownable for PairContract {}
-
-    impl Pair for PairContract {
-        fn _emit_mint_event(&self, sender: AccountId, amount_0: Balance, amount_1: Balance) {
-            self.env().emit_event(Mint {
-                sender,
-                amount_0,
-                amount_1,
-            })
-        }
-
-        fn _emit_burn_event(
-            &self,
-            sender: AccountId,
-            amount_0: Balance,
-            amount_1: Balance,
-            to: AccountId,
-        ) {
-            self.env().emit_event(Burn {
-                sender,
-                amount_0,
-                amount_1,
-                to,
-            })
-        }
-
-        fn _emit_swap_event(
-            &self,
-            sender: AccountId,
-            amount_0_in: Balance,
-            amount_1_in: Balance,
-            amount_0_out: Balance,
-            amount_1_out: Balance,
-            to: AccountId,
-        ) {
-            self.env().emit_event(Swap {
-                sender,
-                amount_0_in,
-                amount_1_in,
-                amount_0_out,
-                amount_1_out,
-                to,
-            })
-        }
-
-        fn _emit_sync_event(&self, reserve_0: Balance, reserve_1: Balance) {
-            self.env().emit_event(Sync {
-                reserve_0,
-                reserve_1,
-            })
-        }
-    }
-
     impl PairContract {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                let caller = instance.env().caller();
-                instance._init_with_owner(caller);
-                instance.pair.factory = caller;
-            })
+            let mut instance = Self::default();
+            let caller = instance.env().caller();
+            instance._init_with_owner(caller);
+            instance.pair.factory = caller;
+            instance
         }
     }
 }

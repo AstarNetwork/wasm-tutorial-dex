@@ -3,7 +3,7 @@ pub use crate::{
     impls::factory::*,
     traits::factory::*,
 };
-use ink_env::hash::Blake2x256;
+use ink::env::hash::Blake2x256;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -14,16 +14,12 @@ use openbrush::{
     },
 };
 
-impl<T> Factory for T
-where
-    T: Internal,
-    T: Storage<data::Data>,
-{
-    default fn all_pair_length(&self) -> u64 {
+impl<T: Storage<data::Data>> Factory for T {
+    fn all_pair_length(&self) -> u64 {
         self.data::<data::Data>().all_pairs.len() as u64
     }
 
-    default fn create_pair(
+    fn create_pair(
         &mut self,
         token_a: AccountId,
         token_b: AccountId,
@@ -69,31 +65,29 @@ where
     }
 
     #[modifiers(only_fee_setter)]
-    default fn set_fee_to(&mut self, fee_to: AccountId) -> Result<(), FactoryError> {
+    fn set_fee_to(&mut self, fee_to: AccountId) -> Result<(), FactoryError> {
         self.data::<data::Data>().fee_to = fee_to;
         Ok(())
     }
 
     #[modifiers(only_fee_setter)]
-    default fn set_fee_to_setter(&mut self, fee_to_setter: AccountId) -> Result<(), FactoryError> {
+    fn set_fee_to_setter(&mut self, fee_to_setter: AccountId) -> Result<(), FactoryError> {
         self.data::<data::Data>().fee_to_setter = fee_to_setter;
         Ok(())
     }
 
-    default fn fee_to(&self) -> AccountId {
+    fn fee_to(&self) -> AccountId {
         self.data::<data::Data>().fee_to
     }
 
-    default fn fee_to_setter(&self) -> AccountId {
+    fn fee_to_setter(&self) -> AccountId {
         self.data::<data::Data>().fee_to_setter
     }
 
-    default fn get_pair(&self, token_a: AccountId, token_b: AccountId) -> Option<AccountId> {
+    fn get_pair(&self, token_a: AccountId, token_b: AccountId) -> Option<AccountId> {
         self.data::<data::Data>().get_pair.get(&(token_a, token_b))
     }
-}
 
-impl<T: Storage<data::Data>> Internal for T {
     default fn _emit_create_pair_event(
         &self,
         _token_0: AccountId,

@@ -1,13 +1,18 @@
-use ink_env::Hash;
-use ink_prelude::vec::Vec;
+use ink::{
+    prelude::vec::Vec,
+    primitives::Hash,
+};
 use openbrush::{
     storage::Mapping,
-    traits::AccountId,
+    traits::{
+        AccountId,
+        ZERO_ADDRESS,
+    },
 };
 
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct Data {
     pub fee_to: AccountId,
@@ -15,4 +20,16 @@ pub struct Data {
     pub get_pair: Mapping<(AccountId, AccountId), AccountId>,
     pub all_pairs: Vec<AccountId>,
     pub pair_contract_code_hash: Hash,
+}
+
+impl Default for Data {
+    fn default() -> Self {
+        Self {
+            fee_to: ZERO_ADDRESS.into(),
+            fee_to_setter: ZERO_ADDRESS.into(),
+            get_pair: Default::default(),
+            all_pairs: Default::default(),
+            pair_contract_code_hash: Default::default(),
+        }
+    }
 }
