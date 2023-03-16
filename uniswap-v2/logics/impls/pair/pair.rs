@@ -3,7 +3,7 @@ pub use crate::{
     impls::pair::*,
     traits::pair::*,
 };
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::{
         ownable::*,
