@@ -3,7 +3,7 @@ pub use crate::{
     impls::factory::*,
     traits::factory::*,
 };
-use ink_env::hash::Blake2x256;
+use ink::env::hash::Blake2x256;
 use openbrush::{
     modifier_definition,
     modifiers,
@@ -100,10 +100,10 @@ impl<T: Storage<data::Data>> Factory for T {
 
 #[modifier_definition]
 pub fn only_fee_setter<T, F, R, E>(instance: &mut T, body: F) -> Result<R, E>
-    where
-        T: Storage<data::Data>,
-        F: FnOnce(&mut T) -> Result<R, E>,
-        E: From<FactoryError>,
+where
+    T: Storage<data::Data>,
+    F: FnOnce(&mut T) -> Result<R, E>,
+    E: From<FactoryError>,
 {
     if instance.data().fee_to_setter != T::env().caller() {
         return Err(From::from(FactoryError::CallerIsNotFeeSetter))
